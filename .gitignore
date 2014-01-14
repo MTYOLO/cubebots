@@ -1,6 +1,10 @@
+# Compiled files
 *.class
-
-# Package Files #
+## Package files
 *.jar
 *.war
 *.ear
+
+# Ignore OS cache files
+.DS_Store
+_MACOSX
