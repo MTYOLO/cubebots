@@ -72,7 +72,7 @@ public class CubeBots {
 	@Instance(modName)
 	public static CubeBots instance;
 
-	@SidedProxy(clientSide = "T145.cubebots.ClientProxy", serverSide = "T145.cubebots.CommonProxy")
+	@SidedProxy(clientSide = "T145.cubebots.proxies.ClientProxy", serverSide = "T145.cubebots.proxies.CommonProxy")
 	public static CommonProxy proxy;
 
 	public static ConfigFile config = new ConfigFile();
