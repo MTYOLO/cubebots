@@ -6,39 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
-import T145.cubebots.entities.CubeBadZombie;
-import T145.cubebots.entities.CubeBot;
-import T145.cubebots.entities.CubeBotArcher;
-import T145.cubebots.entities.CubeBotBreeder;
-import T145.cubebots.entities.CubeBotButcher;
-import T145.cubebots.entities.CubeBotChickBring;
-import T145.cubebots.entities.CubeBotCollector;
-import T145.cubebots.entities.CubeBotFarmer;
-import T145.cubebots.entities.CubeBotFighter;
-import T145.cubebots.entities.CubeBotFixer;
-import T145.cubebots.entities.CubeBotGrasser;
-import T145.cubebots.entities.CubeBotLumber;
-import T145.cubebots.entities.CubeBotMilker;
-import T145.cubebots.entities.CubeBotMiner;
-import T145.cubebots.entities.CubeBotOreFinder;
-import T145.cubebots.entities.CubeBotSiren;
-import T145.cubebots.entities.CubeBotSmithy;
-import T145.cubebots.entities.CubeBotTamer;
-import T145.cubebots.entities.CubeBotTeleporter;
-import T145.cubebots.entities.EnumCubeBotType;
-import T145.cubebots.handlers.CreatingHandler;
-import T145.cubebots.handlers.GuiHandler;
-import T145.cubebots.handlers.PacketHandlerClient;
-import T145.cubebots.handlers.PacketHandlerServer;
-import T145.cubebots.handlers.TickHandlerClient;
-import T145.cubebots.handlers.TickHandlerServer;
-import T145.cubebots.objects.BlockMarker;
-import T145.cubebots.objects.CreativeTabCubeBot;
-import T145.cubebots.objects.ItemBotSpawner;
-import T145.cubebots.objects.ItemCubeCall;
-import T145.cubebots.objects.TileMarker;
-import T145.cubebots.proxies.CommonProxy;
-import T145.cubebots.world.WorldGenerator;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDispenser;
 import net.minecraft.creativetab.CreativeTabs;
@@ -47,6 +14,40 @@ import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.biome.BiomeGenBase;
+import T145.cubebots.block.BlockMarker;
+import T145.cubebots.entity.CubeBadZombie;
+import T145.cubebots.entity.CubeBot;
+import T145.cubebots.entity.CubeBotArcher;
+import T145.cubebots.entity.CubeBotBreeder;
+import T145.cubebots.entity.CubeBotButcher;
+import T145.cubebots.entity.CubeBotChickBring;
+import T145.cubebots.entity.CubeBotCollector;
+import T145.cubebots.entity.CubeBotFarmer;
+import T145.cubebots.entity.CubeBotFighter;
+import T145.cubebots.entity.CubeBotFixer;
+import T145.cubebots.entity.CubeBotGrasser;
+import T145.cubebots.entity.CubeBotLumber;
+import T145.cubebots.entity.CubeBotMilker;
+import T145.cubebots.entity.CubeBotMiner;
+import T145.cubebots.entity.CubeBotOreFinder;
+import T145.cubebots.entity.CubeBotSiren;
+import T145.cubebots.entity.CubeBotSmithy;
+import T145.cubebots.entity.CubeBotTamer;
+import T145.cubebots.entity.CubeBotTeleporter;
+import T145.cubebots.entity.EnumCubeBotType;
+import T145.cubebots.item.ItemCubeBotSpawner;
+import T145.cubebots.item.ItemCubeCall;
+import T145.cubebots.lib.BehaviorDispenseCB;
+import T145.cubebots.lib.Configuration;
+import T145.cubebots.lib.CreatingHandler;
+import T145.cubebots.lib.GuiHandler;
+import T145.cubebots.network.CommonProxy;
+import T145.cubebots.network.packet.PacketHandlerClient;
+import T145.cubebots.network.packet.PacketHandlerServer;
+import T145.cubebots.network.packet.TickHandlerClient;
+import T145.cubebots.network.packet.TickHandlerServer;
+import T145.cubebots.tileentity.TileEntityMarker;
+import T145.cubebots.world.WorldGenerator;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -72,10 +73,10 @@ public class CubeBots {
 	@Instance(modName)
 	public static CubeBots instance;
 
-	@SidedProxy(clientSide = "T145.cubebots.proxies.ClientProxy", serverSide = "T145.cubebots.proxies.CommonProxy")
+	@SidedProxy(clientSide = "T145.cubebots.network.ClientProxy", serverSide = "T145.cubebots.network.CommonProxy")
 	public static CommonProxy proxy;
 
-	public static ConfigFile config = new ConfigFile();
+	public static Configuration config = new Configuration();
 	public static Logger logger;
 
 	@EventHandler
@@ -88,13 +89,16 @@ public class CubeBots {
 	}
 
 	@EventHandler
-	public void load(FMLInitializationEvent event) {
+	public void init(FMLInitializationEvent event) {
 		TickRegistry.registerTickHandler(new TickHandlerServer(), Side.SERVER);
 		TickRegistry.registerTickHandler(new TickHandlerClient(), Side.CLIENT);
+
 		NetworkRegistry.instance().registerGuiHandler(this, new GuiHandler());
+
 		GameRegistry.registerWorldGenerator(new WorldGenerator());
 		GameRegistry.registerCraftingHandler(new CreatingHandler());
 		GameRegistry.registerFuelHandler(new CreatingHandler());
+
 		BlockDispenser.dispenseBehaviorRegistry.putObject(cubeBotCore, new BehaviorDispenseCB());
 		BlockDispenser.dispenseBehaviorRegistry.putObject(lifeCore, new BehaviorDispenseCB());
 		BlockDispenser.dispenseBehaviorRegistry.putObject(infiniteLifeCore, new BehaviorDispenseCB());
@@ -179,7 +183,11 @@ public class CubeBots {
 	public static Block markerChest, markerPig, markerChicken, markerOre, markerWolf, markerCat;
 
 	public void initializeStuffs() {
-		cubeBotTab = new CreativeTabCubeBot("CubeBot Stuffs");
+		CreativeTabs cubeBotTab = new CreativeTabs("cubebots") {
+			public ItemStack getIconItemStack() {
+				return new ItemStack(CubeBots.cubeBotSpawn);
+			}
+		};
 		
 		marker = new Item(config.getInt("Marker id", 21210)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":marker");
 		cubePiece = new Item(config.getInt("Cube Piece id", 21211)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubePiece");
@@ -190,25 +198,25 @@ public class CubeBots {
 		instantCubeCall = new ItemCubeCall(config.getInt("Instant CubeCall id", 21216), true).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":instantCubeCall");
 		// netherPiece = new Item(config.getInt("Nether Piece id", 21217)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modName+":netherPiece");
 
-		cubeBotSpawn = new ItemBotSpawner(config.getInt("CubeBot Spawner id", 21220), EnumCubeBotType.NORMAL).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotSpawn");
-		cubeBotCollectorSpawn = new ItemBotSpawner(config.getInt("CubeBot Collector Spawner id", 21221), EnumCubeBotType.COLLECTOR).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotCollectorSpawn");
-		cubeBotLumberSpawn = new ItemBotSpawner(config.getInt("CubeBot Lumber Spawner id", 21222), EnumCubeBotType.LUMBER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotLumberSpawn");
-		cubeBotFighterSpawn = new ItemBotSpawner(config.getInt("CubeBot Fighter Spawner id", 21223), EnumCubeBotType.FIGHTER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotFighterSpawn");
-		cubeBotBreederSpawn = new ItemBotSpawner(config.getInt("CubeBot Breeder Spawner id", 21224), EnumCubeBotType.BREEDER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotBreederSpawn");
-		cubeBotFixerSpawn = new ItemBotSpawner(config.getInt("CubeBot Fixer Spawner id", 21225), EnumCubeBotType.FIXER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotFixerSpawn");
-		cubeBotFarmerSpawn = new ItemBotSpawner(config.getInt("CubeBot Farmer Spawner id", 21226), EnumCubeBotType.FARMER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotFarmerSpawn");
-		cubeBotArcherSpawn = new ItemBotSpawner(config.getInt("CubeBot Archer Spawner id", 21227), EnumCubeBotType.ARCHER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotArcherSpawn");
-		cubeBotMilkerSpawn = new ItemBotSpawner(config.getInt("CubeBot Milker Spawner id", 21228), EnumCubeBotType.MILKER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotMilkerSpawn");
-		cubeBotButcherSpawn = new ItemBotSpawner(config.getInt("CubeBot Butcher Spawner id", 21229), EnumCubeBotType.BUTCHER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotButcherSpawn");
-		cubeBotSmithySpawn = new ItemBotSpawner(config.getInt("CubeBot Smithy Spawner id", 21230), EnumCubeBotType.SMITHY).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotSmithySpawn");
-		cubeBotChickBringSpawn = new ItemBotSpawner(config.getInt("CubeBot Chicken Bringer Spawner id", 21231), EnumCubeBotType.CHICKBRING).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotChickBringSpawn");
-		cubeBotOreFinderSpawn = new ItemBotSpawner(config.getInt("CubeBot Ore Finder Spawner id", 21232), EnumCubeBotType.OREFINDER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotOreFinderSpawn");
-		cubeBotMinerSpawn = new ItemBotSpawner(config.getInt("CubeBot Miner Spawner id", 21233), EnumCubeBotType.MINER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotMinerSpawn");
-		cubeBotTeleporterSpawn = new ItemBotSpawner(config.getInt("CubeBot Teleporter Spawner id", 21234),EnumCubeBotType.TELEPORTER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotTeleporterSpawn");
-		cubeBotSirenSpawn = new ItemBotSpawner(config.getInt("CubeBot Siren Spawner id", 21235), EnumCubeBotType.SIREN).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotSirenSpawn");
-		cubeBotTamerSpawn = new ItemBotSpawner(config.getInt("CubeBot Tamer Spawner id", 21236), EnumCubeBotType.TAMER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotTamerSpawn");
-		cubeBotGrasserSpawn = new ItemBotSpawner(config.getInt("CubeBot Grasser Spawner id", 21237), EnumCubeBotType.GRASSER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotGrasserSpawn");
-		// netherBotSpawn = new ItemBotSpawner(config.getInt("NetherBot Spawner id", 21250),
+		cubeBotSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Spawner id", 21220), EnumCubeBotType.NORMAL).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotSpawn");
+		cubeBotCollectorSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Collector Spawner id", 21221), EnumCubeBotType.COLLECTOR).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotCollectorSpawn");
+		cubeBotLumberSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Lumber Spawner id", 21222), EnumCubeBotType.LUMBER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotLumberSpawn");
+		cubeBotFighterSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Fighter Spawner id", 21223), EnumCubeBotType.FIGHTER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotFighterSpawn");
+		cubeBotBreederSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Breeder Spawner id", 21224), EnumCubeBotType.BREEDER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotBreederSpawn");
+		cubeBotFixerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Fixer Spawner id", 21225), EnumCubeBotType.FIXER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotFixerSpawn");
+		cubeBotFarmerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Farmer Spawner id", 21226), EnumCubeBotType.FARMER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotFarmerSpawn");
+		cubeBotArcherSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Archer Spawner id", 21227), EnumCubeBotType.ARCHER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotArcherSpawn");
+		cubeBotMilkerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Milker Spawner id", 21228), EnumCubeBotType.MILKER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotMilkerSpawn");
+		cubeBotButcherSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Butcher Spawner id", 21229), EnumCubeBotType.BUTCHER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotButcherSpawn");
+		cubeBotSmithySpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Smithy Spawner id", 21230), EnumCubeBotType.SMITHY).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotSmithySpawn");
+		cubeBotChickBringSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Chicken Bringer Spawner id", 21231), EnumCubeBotType.CHICKBRING).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotChickBringSpawn");
+		cubeBotOreFinderSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Ore Finder Spawner id", 21232), EnumCubeBotType.OREFINDER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotOreFinderSpawn");
+		cubeBotMinerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Miner Spawner id", 21233), EnumCubeBotType.MINER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotMinerSpawn");
+		cubeBotTeleporterSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Teleporter Spawner id", 21234),EnumCubeBotType.TELEPORTER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotTeleporterSpawn");
+		cubeBotSirenSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Siren Spawner id", 21235), EnumCubeBotType.SIREN).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotSirenSpawn");
+		cubeBotTamerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Tamer Spawner id", 21236), EnumCubeBotType.TAMER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotTamerSpawn");
+		cubeBotGrasserSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Grasser Spawner id", 21237), EnumCubeBotType.GRASSER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotGrasserSpawn");
+		// netherBotSpawn = new ItemCubeBotSpawner(config.getInt("NetherBot Spawner id", 21250),
 		// EnumCubeBotType.NETHER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName+":netherBotSpawn");
 
 		markerChest = new BlockMarker(config.getInt("Chest Marker id", 2777), Block.chest, null, 0.75F).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":markerChest");
@@ -220,7 +228,7 @@ public class CubeBots {
 	}
 
 	public void registerStuffs() {
-		LanguageRegistry.instance().addStringLocalization("itemGroup.CubeBot Stuffs", "CubeBots");
+		LanguageRegistry.instance().addStringLocalization("itemGroup.cubebots", "CubeBots");
 
 		LanguageRegistry.addName(marker, "Marker");
 		LanguageRegistry.addName(cubePiece, "Cube Piece");
@@ -251,7 +259,7 @@ public class CubeBots {
 		LanguageRegistry.addName(cubeBotGrasserSpawn, "CubeBot Grasser");
 		// LanguageRegistry.addName(netherBotSpawn, "NetherBot");
 
-		GameRegistry.registerTileEntity(TileMarker.class, "Cb Marker");
+		GameRegistry.registerTileEntity(TileEntityMarker.class, "Cb Marker");
 		GameRegistry.registerBlock(markerChest, "Cb Chest Marker");
 		GameRegistry.registerBlock(markerPig, "Cb Pig Marker");
 		GameRegistry.registerBlock(markerChicken, "Cb Chicken Marker");
