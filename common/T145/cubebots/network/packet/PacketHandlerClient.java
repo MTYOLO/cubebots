@@ -17,9 +17,7 @@ public class PacketHandlerClient extends PacketHandler {
 		ByteArrayInputStream inputArray = new ByteArrayInputStream(packet.data);
 		DataInputStream in = new DataInputStream(inputArray);
 		int type = in.readInt();
-
 		if (type == 0) spawnParticleFromTo(in);
-
 		in.close();
 	}
 
@@ -27,18 +25,11 @@ public class PacketHandlerClient extends PacketHandler {
 		if (FMLCommonHandler.instance().getSide() == Side.CLIENT) {
 			World world = FMLClientHandler.instance().getClient().theWorld;
 			String type = in.readUTF();
-			double x1 = in.readDouble();
-			double y1 = in.readDouble();
-			double z1 = in.readDouble();
-			double x2 = in.readDouble();
-			double y2 = in.readDouble();
-			double z2 = in.readDouble();
+			double x1 = in.readDouble(), y1 = in.readDouble(), z1 = in.readDouble(), x2 = in.readDouble(), y2 = in.readDouble(), z2 = in.readDouble();
 			Vec3 vec = Vec3.fakePool.getVecFromPool(x1 - x2, y1 - y2, z1 - z2);
 			double length = vec.lengthVector();
 			for (double b = 0.4; b < length; b += 0.8) {
-				double px = x2 + vec.xCoord * b / length;
-				double py = y2 + vec.yCoord * b / length;
-				double pz = z2 + vec.zCoord * b / length;
+				double px = x2 + vec.xCoord * b / length, py = y2 + vec.yCoord * b / length, pz = z2 + vec.zCoord * b / length;
 				world.spawnParticle(type, px, py, pz, 0, 0, 0);
 			}
 		}

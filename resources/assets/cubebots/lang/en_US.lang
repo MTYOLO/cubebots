@@ -1,0 +1,37 @@
+itemGroup.cubebots=CubeBots
+
+tile.CubeBots:markerChest.name=Chest Marker
+tile.CubeBots:markerPig.name=Pig Marker
+tile.CubeBots:markerChicken.name=Chicken Marker
+tile.CubeBots:markerOre.name=Ore Marker
+tile.CubeBots:markerWolf.name=Wolf Marker
+tile.CubeBots:markerCat.name=Ocelot Marker
+
+item.CubeBots:marker.name=Marker
+item.CubeBots:cubePiece.name=Cube Piece
+item.CubeBots:cubeBotCore.name=CubeBot Power Core
+item.CubeBots:lifeCore.name=Life Core
+item.CubeBots:infiniteLifeCore.name=Infinite Life Core
+item.CubeBots:cubeCall.name=CubeBot Caller
+item.CubeBots:instantCubeCall.name=Instant CubeBot Caller
+item.CubeBots:netherPiece.name=Nether Cube Piece
+
+item.CubeBots:cubeBotSpawn.name=CubeBot
+item.CubeBots:cubeBotCollectorSpawn.name=CubeBot Collector
+item.CubeBots:cubeBotLumberSpawn.name=Lumberjack CubeBot
+item.CubeBots:cubeBotFighterSpawn.name=Fighter CubeBot
+item.CubeBots:cubeBotBreederSpawn.name=Breeder CubeBot
+item.CubeBots:cubeBotFixerSpawn.name=Fixer CubeBot
+item.CubeBots:cubeBotFarmerSpawn.name=Farmer CubeBot
+item.CubeBots:cubeBotArcherSpawn.name=Archer CubeBot
+item.CubeBots:cubeBotMilkerSpawn.name=Milker CubeBot
+item.CubeBots:cubeBotButcherSpawn.name=Butcher CubeBot
+item.CubeBots:cubeBotSmithySpawn.name=Smithy CubeBot
+item.CubeBots:cubeBotChickBringSpawn.name=Chicken Bringer CubeBot
+item.CubeBots:cubeBotOreFinderSpawn.name=Ore Finding CubeBot
+item.CubeBots:cubeBotMinerSpawn.name=Miner CubeBot
+item.CubeBots:cubeBotTeleporterSpawn.name=Teleporter CubeBot
+item.CubeBots:cubeBotSirenSpawn.name=Siren CubeBot
+item.CubeBots:cubeBotTamerSpawn.name=Tamer CubeBot
+item.CubeBots:cubeBotGrasserSpawn.name=Grasser CubeBot
+item.CubeBots:netherBotSpawn.name=NetherBot

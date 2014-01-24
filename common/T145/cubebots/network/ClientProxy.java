@@ -1,11 +1,11 @@
 package T145.cubebots.network;
 
+import T145.cubebots.client.renderer.tileentity.TileEntityMarkerRenderer;
 import T145.cubebots.entity.CubeBot;
 import T145.cubebots.entity.ModelCubeBot;
 import T145.cubebots.entity.RenderCubeBot;
 import T145.cubebots.lib.BlockRenderHandler;
 import T145.cubebots.tileentity.TileEntityMarker;
-import T145.cubebots.tileentity.TileEntityMarkerRenderer;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 

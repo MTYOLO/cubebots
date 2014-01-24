@@ -2,8 +2,6 @@ package T145.cubebots.lib;
 
 import java.util.List;
 
-import T145.cubebots.CubeBots;
-import T145.cubebots.entity.CubeBot;
 import net.minecraft.block.BlockDispenser;
 import net.minecraft.dispenser.IBehaviorDispenseItem;
 import net.minecraft.dispenser.IBlockSource;
@@ -12,6 +10,8 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
+import T145.cubebots.CubeBots;
+import T145.cubebots.entity.CubeBot;
 
 public class BehaviorDispenseCB implements IBehaviorDispenseItem {
 	@Override

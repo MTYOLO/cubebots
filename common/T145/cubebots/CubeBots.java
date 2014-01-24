@@ -39,8 +39,6 @@ import T145.cubebots.item.ItemCubeBotSpawner;
 import T145.cubebots.item.ItemCubeCall;
 import T145.cubebots.lib.BehaviorDispenseCB;
 import T145.cubebots.lib.Configuration;
-import T145.cubebots.lib.CreatingHandler;
-import T145.cubebots.lib.GuiHandler;
 import T145.cubebots.network.CommonProxy;
 import T145.cubebots.network.packet.PacketHandlerClient;
 import T145.cubebots.network.packet.PacketHandlerServer;
@@ -58,87 +56,119 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.network.NetworkMod.SidedPacketHandler;
-import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.common.registry.TickRegistry;
 import cpw.mods.fml.relauncher.Side;
 
-@Mod(
-		modid = "cubebots", 
-		name = "CubeBots", 
-		version = "1.4.3"
-		)
-
-@NetworkMod(		
-		clientSideRequired = true, 
-		serverSideRequired = false, 
-		clientPacketHandlerSpec = @SidedPacketHandler(
-				channels = "CubeBots",
-				packetHandler = PacketHandlerClient.class
-				), 
-		serverPacketHandlerSpec = @SidedPacketHandler(
-				channels = "CubeBots",
-				packetHandler = PacketHandlerServer.class
-				)
-		)
-
+@Mod(modid = CubeBots.modid, name = CubeBots.modid, version = "1.4.3")
+@NetworkMod(clientSideRequired = true, serverSideRequired = false, clientPacketHandlerSpec = @SidedPacketHandler(channels = "CubeBots", packetHandler = PacketHandlerClient.class), serverPacketHandlerSpec = @SidedPacketHandler(channels = "CubeBots", packetHandler = PacketHandlerServer.class))
 public class CubeBots {
-	static final String modName = "CubeBots";
+	public static final String modid = "CubeBots";
 
-	@Instance(modName)
+	public static Item marker, cubePiece, cubeBotCore, lifeCore, infiniteLifeCore, cubeCall, instantCubeCall, cubeBotSpawn, cubeBotCollectorSpawn, cubeBotLumberSpawn, cubeBotFighterSpawn, cubeBotBreederSpawn, cubeBotFixerSpawn, cubeBotFarmerSpawn, cubeBotArcherSpawn, cubeBotMilkerSpawn, cubeBotButcherSpawn, cubeBotSmithySpawn, cubeBotChickBringSpawn, cubeBotOreFinderSpawn, cubeBotMinerSpawn, cubeBotTeleporterSpawn, cubeBotSirenSpawn, cubeBotTamerSpawn, cubeBotGrasserSpawn;
+	// public static Item netherPiece, netherBotSpawn;
+	public static Block markerChest, markerPig, markerChicken, markerOre, markerWolf, markerCat;
+
+	public static CreativeTabs cubeBotTab = new CreativeTabs("cubebots") {
+		@Override
+		public ItemStack getIconItemStack() {
+			return new ItemStack(CubeBots.cubeBotSpawn);
+		}
+	};
+
+	@Instance(modid)
 	public static CubeBots instance;
 
-	@SidedProxy(
-			clientSide = "T145.cubebots.network.ClientProxy", 
-			serverSide = "T145.cubebots.network.CommonProxy"
-			)
-	
+	@SidedProxy(clientSide = "T145.cubebots.network.ClientProxy", serverSide = "T145.cubebots.network.CommonProxy")
 	public static CommonProxy proxy;
 
 	public static Configuration config = new Configuration();
 	public static Logger logger;
 
+	public static int monsterSpawnRate = config.getInt("Monsters spawn rate", 3, "The higher the more chance"), updateFrequency = config.getInt("Bots update frequency", 1, "The lower the faster update, 0-5, increase the value if you experience great delay.");
+
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
-		config.setConfigHeader(modName);
+		// Set up configuration stuff
+		config.setConfigHeader(modid);
 		config.loadUsing(event.getSuggestedConfigurationFile());
-		logger = Logger.getLogger(modName);
+		logger = Logger.getLogger(modid);
 		logger.setParent(FMLLog.getLogger());
-		initializeStuffs();
+		config.save();
+	}
+
+	public void registerCubeBot(Class<? extends Entity> entityClass, String entityName, int id) {
+		registerModEntity(entityClass, entityName, id, this, 64, updateFrequency, true);
+	}
+
+	public void registerModEntity(Class<? extends Entity> entityClass, String entityName, int id, Object mod, int trackingRange, int updateFrequency, boolean sendsVelocityUpdates) {
+		EntityRegistry.registerModEntity(entityClass, entityName, id, mod, trackingRange, updateFrequency, sendsVelocityUpdates);
+		LanguageRegistry.instance().addStringLocalization("entity.CubeBots." + entityName + ".name", entityName);
+	}
+
+	public BiomeGenBase[] allBiomesExcept(BiomeGenBase... bases) {
+		List<BiomeGenBase> l1 = new ArrayList();
+		l1.addAll(Arrays.asList(BiomeGenBase.biomeList));
+		l1.removeAll(Collections.singleton(null));
+		l1.removeAll(Arrays.asList(bases));
+		BiomeGenBase[] bgb = new BiomeGenBase[l1.size()];
+		bgb = l1.toArray(new BiomeGenBase[0]);
+		return bgb;
 	}
 
 	@EventHandler
 	public void init(FMLInitializationEvent event) {
+		// Load blocks & entities
+		marker = new Item(config.getInt("Marker id", 21210)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":marker").setTextureName("cubebots:marker");
+		cubePiece = new Item(config.getInt("Cube Piece id", 21211)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubePiece").setTextureName("cubebots:cubePiece");
+		cubeBotCore = new Item(config.getInt("CubeBot Power Core id", 21212)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotCore").setTextureName("cubebots:cubeBotCore");
+		lifeCore = new Item(config.getInt("Life Core id", 21213)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":lifeCore").setTextureName("cubebots:lifeCore");
+		infiniteLifeCore = new Item(config.getInt("Infinite Life Core id", 21214)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":infiniteLifeCore").setTextureName("cubebots:infiniteLifeCore");
+		cubeCall = new ItemCubeCall(config.getInt("CubeCall id", 21215), false).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeCall").setTextureName("cubebots:cubeCall");
+		instantCubeCall = new ItemCubeCall(config.getInt("Instant CubeCall id", 21216), true).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":instantCubeCall").setTextureName("cubebots:instantCubeCall");
+		// netherPiece = new Item(config.getInt("Nether Piece id", 21217)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modName+":netherPiece");
+
+		cubeBotSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Spawner id", 21220), EnumCubeBotType.NORMAL).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotSpawn").setTextureName("cubebots:cubeBotSpawn");
+		cubeBotCollectorSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Collector Spawner id", 21221), EnumCubeBotType.COLLECTOR).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotCollectorSpawn").setTextureName("cubebots:cubeBotCollectorSpawn");
+		cubeBotLumberSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Lumber Spawner id", 21222), EnumCubeBotType.LUMBER).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotLumberSpawn").setTextureName("cubebots:cubeBotLumberSpawn");
+		cubeBotFighterSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Fighter Spawner id", 21223), EnumCubeBotType.FIGHTER).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotFighterSpawn").setTextureName("cubebots:cubeBotFighterSpawn");
+		cubeBotBreederSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Breeder Spawner id", 21224), EnumCubeBotType.BREEDER).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotBreederSpawn").setTextureName("cubebots:cubeBotBreederSpawn");
+		cubeBotFixerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Fixer Spawner id", 21225), EnumCubeBotType.FIXER).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotFixerSpawn").setTextureName("cubebots:cubeBotFixerSpawn");
+		cubeBotFarmerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Farmer Spawner id", 21226), EnumCubeBotType.FARMER).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotFarmerSpawn").setTextureName("cubebots:cubeBotFarmerSpawn");
+		cubeBotArcherSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Archer Spawner id", 21227), EnumCubeBotType.ARCHER).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotArcherSpawn").setTextureName("cubebots:cubeBotArcherSpawn");
+		cubeBotMilkerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Milker Spawner id", 21228), EnumCubeBotType.MILKER).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotMilkerSpawn").setTextureName("cubebots:cubeBotMilkerSpawn");
+		cubeBotButcherSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Butcher Spawner id", 21229), EnumCubeBotType.BUTCHER).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotButcherSpawn").setTextureName("cubebots:cubeBotButcherSpawn");
+		cubeBotSmithySpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Smithy Spawner id", 21230), EnumCubeBotType.SMITHY).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotSmithySpawn").setTextureName("cubebots:cubeBotSmithySpawn");
+		cubeBotChickBringSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Chicken Bringer Spawner id", 21231), EnumCubeBotType.CHICKBRING).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotChickBringSpawn").setTextureName("cubebots:cubeBotChickBringSpawn");
+		cubeBotOreFinderSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Ore Finder Spawner id", 21232), EnumCubeBotType.OREFINDER).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotOreFinderSpawn").setTextureName("cubebots:cubeBotOreFinderSpawn");
+		cubeBotMinerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Miner Spawner id", 21233), EnumCubeBotType.MINER).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotMinerSpawn").setTextureName("cubebots:cubeBotMinerSpawn");
+		cubeBotTeleporterSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Teleporter Spawner id", 21234),EnumCubeBotType.TELEPORTER).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotMinerSpawn").setTextureName("cubebots:cubeBotMinerSpawn");
+		cubeBotSirenSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Siren Spawner id", 21235), EnumCubeBotType.SIREN).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotSirenSpawn").setTextureName("cubebots:cubeBotSirenSpawn");
+		cubeBotTamerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Tamer Spawner id", 21236), EnumCubeBotType.TAMER).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotTamerSpawn").setTextureName("cubebots:cubeBotTamerSpawn");
+		cubeBotGrasserSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Grasser Spawner id", 21237), EnumCubeBotType.GRASSER).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":cubeBotGrasserSpawn").setTextureName("cubebots:cubeBotGrasserSpawn");
+		// netherBotSpawn = new ItemCubeBotSpawner(config.getInt("NetherBot Spawner id", 21250),
+		// EnumCubeBotType.NETHER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName+":netherBotSpawn");
+
+		markerChest = new BlockMarker(config.getInt("Chest Marker id", 2777), Block.chest, null, 0.75F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerChest");
+		markerPig = new BlockMarker(config.getInt("Pig Marker id", 2778), null, "Pig", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerPig");
+		markerChicken = new BlockMarker(config.getInt("Chicken Marker id", 2779), null, "Chicken", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerChicken");
+		markerOre = new BlockMarker(config.getInt("Ore Marker id", 2780), Block.oreCoal, null, 0.75F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerOre");
+		markerWolf = new BlockMarker(config.getInt("Wolf Marker id", 2781), null, "Wolf", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerWolf");
+		markerCat = new BlockMarker(config.getInt("Ocelot Marker id", 2782), null, "Ozelot", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerCat");
+
 		TickRegistry.registerTickHandler(new TickHandlerServer(), Side.SERVER);
 		TickRegistry.registerTickHandler(new TickHandlerClient(), Side.CLIENT);
 
-		NetworkRegistry.instance().registerGuiHandler(this, new GuiHandler());
-
 		GameRegistry.registerWorldGenerator(new WorldGenerator());
-		GameRegistry.registerCraftingHandler(new CreatingHandler());
-		GameRegistry.registerFuelHandler(new CreatingHandler());
 
 		BlockDispenser.dispenseBehaviorRegistry.putObject(cubeBotCore, new BehaviorDispenseCB());
 		BlockDispenser.dispenseBehaviorRegistry.putObject(lifeCore, new BehaviorDispenseCB());
 		BlockDispenser.dispenseBehaviorRegistry.putObject(infiniteLifeCore, new BehaviorDispenseCB());
 
 		proxy.registerRenderers();
-		registerEntities();
-		registerStuffs();
-		addItemRecipes();
-		addBlockRecipes();
-	}
 
-	@EventHandler
-	public void postInit(FMLPostInitializationEvent event) {
-		config.save();
-	}
-
-	public static int monsterSpawnRate = config.getInt("Monsters spawn rate", 3, "The higher the more chance");
-
-	public void registerEntities() {
 		registerCubeBot(CubeBot.class, "CubeBot", 0);
 		registerCubeBot(CubeBotCollector.class, "CubeBotCollector", 1);
 		registerCubeBot(CubeBotLumber.class, "CubeBotLumber", 2);
@@ -170,116 +200,6 @@ public class CubeBots {
 		}
 		// EntityRegistry.addSpawn(NetherBot.class, 50, 4, 8,
 		// EnumCreatureType.monster, BiomeGenBase.hell);
-	}
-
-	public static int updateFrequency = config.getInt("Bots update frequency", 1, "The lower the faster update, 0-5, increase the value if you experience great delay.");
-
-	public void registerCubeBot(Class<? extends Entity> entityClass, String entityName, int id) {
-		registerModEntity(entityClass, entityName, id, this, 64, updateFrequency, true);
-	}
-
-	public void registerModEntity(Class<? extends Entity> entityClass, String entityName, int id, Object mod, int trackingRange, int updateFrequency, boolean sendsVelocityUpdates) {
-		EntityRegistry.registerModEntity(entityClass, entityName, id, mod, trackingRange, updateFrequency, sendsVelocityUpdates);
-		LanguageRegistry.instance().addStringLocalization("entity.CubeBots." + entityName + ".name", entityName);
-	}
-
-	public BiomeGenBase[] allBiomesExcept(BiomeGenBase... bases) {
-		List<BiomeGenBase> l1 = new ArrayList();
-		l1.addAll(Arrays.asList(BiomeGenBase.biomeList));
-		l1.removeAll(Collections.singleton(null));
-		l1.removeAll(Arrays.asList(bases));
-		BiomeGenBase[] bgb = new BiomeGenBase[l1.size()];
-		bgb = l1.toArray(new BiomeGenBase[0]);
-		return bgb;
-	}
-
-	public static CreativeTabs cubeBotTab;
-	public static Item marker;
-	public static Item cubePiece, cubeBotCore, lifeCore, infiniteLifeCore, cubeCall, instantCubeCall;
-	// public static Item netherPiece;
-	public static Item cubeBotSpawn, cubeBotCollectorSpawn, cubeBotLumberSpawn, cubeBotFighterSpawn, cubeBotBreederSpawn, cubeBotFixerSpawn;
-	public static Item cubeBotFarmerSpawn, cubeBotArcherSpawn, cubeBotMilkerSpawn, cubeBotButcherSpawn, cubeBotSmithySpawn, cubeBotChickBringSpawn;
-	public static Item cubeBotOreFinderSpawn, cubeBotMinerSpawn, cubeBotTeleporterSpawn, cubeBotSirenSpawn, cubeBotTamerSpawn, cubeBotGrasserSpawn;
-	// public static Item netherBotSpawn;
-	public static Block markerChest, markerPig, markerChicken, markerOre, markerWolf, markerCat;
-
-		public void initializeStuffs() {
-			CreativeTabs cubeBotTab = new CreativeTabs("cubebots") {
-				public ItemStack getIconItemStack() {
-					return new ItemStack(CubeBots.cubeBotSpawn);
-				}
-			};
-
-		
-		marker = new Item(config.getInt("Marker id", 21210)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":marker").setTextureName("cubebots:marker");
-		cubePiece = new Item(config.getInt("Cube Piece id", 21211)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubePiece").setTextureName("cubebots:cubePiece");
-		cubeBotCore = new Item(config.getInt("CubeBot Power Core id", 21212)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotCore").setTextureName("cubebots:cubeBotCore");
-		lifeCore = new Item(config.getInt("Life Core id", 21213)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":lifeCore").setTextureName("cubebots:lifeCore");
-		infiniteLifeCore = new Item(config.getInt("Infinite Life Core id", 21214)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":infiniteLifeCore").setTextureName("cubebots:infiniteLifeCore");
-		cubeCall = new ItemCubeCall(config.getInt("CubeCall id", 21215), false).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeCall").setTextureName("cubebots:cubeCall");
-		instantCubeCall = new ItemCubeCall(config.getInt("Instant CubeCall id", 21216), true).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":instantCubeCall").setTextureName("cubebots:instantCubeCall");
-		// netherPiece = new Item(config.getInt("Nether Piece id", 21217)).setFull3D().setCreativeTab(cubeBotTab).setUnlocalizedName(modName+":netherPiece");
-
-		cubeBotSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Spawner id", 21220), EnumCubeBotType.NORMAL).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotSpawn").setTextureName("cubebots:cubeBotSpawn");
-		cubeBotCollectorSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Collector Spawner id", 21221), EnumCubeBotType.COLLECTOR).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotCollectorSpawn").setTextureName("cubebots:cubeBotCollectorSpawn");
-		cubeBotLumberSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Lumber Spawner id", 21222), EnumCubeBotType.LUMBER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotLumberSpawn").setTextureName("cubebots:cubeBotLumberSpawn");
-		cubeBotFighterSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Fighter Spawner id", 21223), EnumCubeBotType.FIGHTER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotFighterSpawn").setTextureName("cubebots:cubeBotFighterSpawn");
-		cubeBotBreederSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Breeder Spawner id", 21224), EnumCubeBotType.BREEDER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotBreederSpawn").setTextureName("cubebots:cubeBotBreederSpawn");
-		cubeBotFixerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Fixer Spawner id", 21225), EnumCubeBotType.FIXER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotFixerSpawn").setTextureName("cubebots:cubeBotFixerSpawn");
-		cubeBotFarmerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Farmer Spawner id", 21226), EnumCubeBotType.FARMER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotFarmerSpawn").setTextureName("cubebots:cubeBotFarmerSpawn");
-		cubeBotArcherSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Archer Spawner id", 21227), EnumCubeBotType.ARCHER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotArcherSpawn").setTextureName("cubebots:cubeBotArcherSpawn");
-		cubeBotMilkerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Milker Spawner id", 21228), EnumCubeBotType.MILKER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotMilkerSpawn").setTextureName("cubebots:cubeBotMilkerSpawn");
-		cubeBotButcherSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Butcher Spawner id", 21229), EnumCubeBotType.BUTCHER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotButcherSpawn").setTextureName("cubebots:cubeBotButcherSpawn");
-		cubeBotSmithySpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Smithy Spawner id", 21230), EnumCubeBotType.SMITHY).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotSmithySpawn").setTextureName("cubebots:cubeBotSmithySpawn");
-		cubeBotChickBringSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Chicken Bringer Spawner id", 21231), EnumCubeBotType.CHICKBRING).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotChickBringSpawn").setTextureName("cubebots:cubeBotChickBringSpawn");
-		cubeBotOreFinderSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Ore Finder Spawner id", 21232), EnumCubeBotType.OREFINDER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotOreFinderSpawn").setTextureName("cubebots:cubeBotOreFinderSpawn");
-		cubeBotMinerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Miner Spawner id", 21233), EnumCubeBotType.MINER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotMinerSpawn").setTextureName("cubebots:cubeBotMinerSpawn");
-		cubeBotTeleporterSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Teleporter Spawner id", 21234),EnumCubeBotType.TELEPORTER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotMinerSpawn").setTextureName("cubebots:cubeBotMinerSpawn");
-		cubeBotSirenSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Siren Spawner id", 21235), EnumCubeBotType.SIREN).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotSirenSpawn").setTextureName("cubebots:cubeBotSirenSpawn");
-		cubeBotTamerSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Tamer Spawner id", 21236), EnumCubeBotType.TAMER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotTamerSpawn").setTextureName("cubebots:cubeBotTamerSpawn");
-		cubeBotGrasserSpawn = new ItemCubeBotSpawner(config.getInt("CubeBot Grasser Spawner id", 21237), EnumCubeBotType.GRASSER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":cubeBotGrasserSpawn").setTextureName("cubebots:cubeBotGrasserSpawn");
-		// netherBotSpawn = new ItemCubeBotSpawner(config.getInt("NetherBot Spawner id", 21250),
-		// EnumCubeBotType.NETHER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName+":netherBotSpawn");
-
-		markerChest = new BlockMarker(config.getInt("Chest Marker id", 2777), Block.chest, null, 0.75F).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":markerChest");
-		markerPig = new BlockMarker(config.getInt("Pig Marker id", 2778), null, "Pig", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":markerPig");
-		markerChicken = new BlockMarker(config.getInt("Chicken Marker id", 2779), null, "Chicken", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":markerChicken");
-		markerOre = new BlockMarker(config.getInt("Ore Marker id", 2780), Block.oreCoal, null, 0.75F).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":markerOre");
-		markerWolf = new BlockMarker(config.getInt("Wolf Marker id", 2781), null, "Wolf", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":markerWolf");
-		markerCat = new BlockMarker(config.getInt("Ocelot Marker id", 2782), null, "Ozelot", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modName + ":markerCat");
-	}
-
-	public void registerStuffs() {
-		LanguageRegistry.instance().addStringLocalization("itemGroup.cubebots", "CubeBots");
-
-		LanguageRegistry.addName(marker, "Marker");
-		LanguageRegistry.addName(cubePiece, "Cube Piece");
-		LanguageRegistry.addName(cubeBotCore, "CubeBot Power Core");
-		LanguageRegistry.addName(lifeCore, "Life Core");
-		LanguageRegistry.addName(infiniteLifeCore, "Infinite Life Core");
-		LanguageRegistry.addName(cubeCall, "CubeCall");
-		LanguageRegistry.addName(instantCubeCall, "Instant CubeCall");
-		// LanguageRegistry.addName(netherPiece, "Nether Piece");
-
-		LanguageRegistry.addName(cubeBotSpawn, "CubeBot");
-		LanguageRegistry.addName(cubeBotCollectorSpawn, "CubeBot Collector");
-		LanguageRegistry.addName(cubeBotLumberSpawn, "CubeBot Lumber");
-		LanguageRegistry.addName(cubeBotFighterSpawn, "CubeBot Fighter");
-		LanguageRegistry.addName(cubeBotBreederSpawn, "CubeBot Breeder");
-		LanguageRegistry.addName(cubeBotFixerSpawn, "CubeBot Fixer");
-		LanguageRegistry.addName(cubeBotFarmerSpawn, "CubeBot Farmer");
-		LanguageRegistry.addName(cubeBotArcherSpawn, "CubeBot Archer");
-		LanguageRegistry.addName(cubeBotMilkerSpawn, "CubeBot Milker");
-		LanguageRegistry.addName(cubeBotButcherSpawn, "CubeBot Butcher");
-		LanguageRegistry.addName(cubeBotSmithySpawn, "CubeBot Smithy");
-		LanguageRegistry.addName(cubeBotChickBringSpawn, "CubeBot Chicken Bringer");
-		LanguageRegistry.addName(cubeBotOreFinderSpawn, "CubeBot Ore Finder");
-		LanguageRegistry.addName(cubeBotMinerSpawn, "CubeBot Miner");
-		LanguageRegistry.addName(cubeBotTeleporterSpawn, "CubeBot Teleporter");
-		LanguageRegistry.addName(cubeBotSirenSpawn, "CubeBot Siren");
-		LanguageRegistry.addName(cubeBotTamerSpawn, "CubeBot Tamer");
-		LanguageRegistry.addName(cubeBotGrasserSpawn, "CubeBot Grasser");
-		// LanguageRegistry.addName(netherBotSpawn, "NetherBot");
 
 		GameRegistry.registerTileEntity(TileEntityMarker.class, "Cb Marker");
 		GameRegistry.registerBlock(markerChest, "Cb Chest Marker");
@@ -288,15 +208,10 @@ public class CubeBots {
 		GameRegistry.registerBlock(markerOre, "Cb Ore Marker");
 		GameRegistry.registerBlock(markerWolf, "Cb Wolf Marker");
 		GameRegistry.registerBlock(markerCat, "Cb Ocelot Marker");
-		LanguageRegistry.addName(markerChest, "Chest Marker");
-		LanguageRegistry.addName(markerPig, "Pig Marker");
-		LanguageRegistry.addName(markerChicken, "Chicken Marker");
-		LanguageRegistry.addName(markerOre, "Ore Marker");
-		LanguageRegistry.addName(markerWolf, "Wolf Marker");
-		LanguageRegistry.addName(markerCat, "Ocelot Marker");
 	}
 
-	public void addItemRecipes() {
+	@EventHandler
+	public void postInit(FMLPostInitializationEvent event) {
 		GameRegistry.addRecipe(new ItemStack(marker), new Object[] { "P", "W", 'W', Block.cloth, 'P', Block.planks });
 		GameRegistry.addRecipe(new ItemStack(cubeBotCore), new Object[] { "IRI", "IPI", "IDI", 'I', Item.ingotIron, 'R', Item.redstone, 'D', Item.diamond, 'P', cubePiece });
 		GameRegistry.addRecipe(new ItemStack(lifeCore, 4), new Object[] { " C ", "CLC", " C ", 'C', cubeBotCore, 'L', Item.bucketLava });
@@ -325,9 +240,7 @@ public class CubeBots {
 		GameRegistry.addRecipe(new ItemStack(cubeBotTamerSpawn), new Object[] { "B", "R", "C", 'B', Item.fishRaw, 'R', Item.redstone, 'C', cubeBotSpawn });
 		GameRegistry.addRecipe(new ItemStack(cubeBotGrasserSpawn), new Object[] { "B", "R", "C", 'B', Item.shears, 'R', Item.redstone, 'C', cubeBotSpawn });
 		// GameRegistry.addRecipe(new ItemStack(netherBotSpawn), new Object[] { "B", "C", 'B', netherPiece, 'C', cubeBotSpawn });
-	}
 
-	public void addBlockRecipes() {
 		GameRegistry.addRecipe(new ItemStack(markerChest, 4), new Object[] { "C", "S", 'C', Block.chest, 'S', marker });
 		GameRegistry.addRecipe(new ItemStack(markerPig, 4), new Object[] { "C", "S", 'C', Item.porkCooked, 'S', marker });
 		GameRegistry.addRecipe(new ItemStack(markerPig, 4), new Object[] { "C", "S", 'C', Item.porkRaw, 'S', marker });

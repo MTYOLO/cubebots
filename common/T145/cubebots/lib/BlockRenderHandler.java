@@ -1,13 +1,13 @@
 package T145.cubebots.lib;
 
-import T145.cubebots.block.BlockMarker;
-import T145.cubebots.tileentity.TileEntityMarker;
-import T145.cubebots.tileentity.TileEntityMarkerRenderer;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import T145.cubebots.block.BlockMarker;
+import T145.cubebots.client.renderer.tileentity.TileEntityMarkerRenderer;
+import T145.cubebots.tileentity.TileEntityMarker;
 import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
 

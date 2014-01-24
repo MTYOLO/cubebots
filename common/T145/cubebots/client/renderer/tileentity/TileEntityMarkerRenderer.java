@@ -1,4 +1,4 @@
-package T145.cubebots.tileentity;
+package T145.cubebots.client.renderer.tileentity;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -9,6 +9,8 @@ import net.minecraft.tileentity.TileEntity;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+
+import T145.cubebots.tileentity.TileEntityMarker;
 
 public class TileEntityMarkerRenderer extends TileEntitySpecialRenderer {
 	RenderBlocks rb = new RenderBlocks();
