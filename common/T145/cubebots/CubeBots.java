@@ -151,12 +151,12 @@ public class CubeBots {
 		// netherBotSpawn = new ItemCubeBotSpawner(config.getInt("NetherBot Spawner id", 21250),
 		// EnumCubeBotType.NETHER).setCreativeTab(cubeBotTab).setUnlocalizedName(modName+":netherBotSpawn");
 
-		markerChest = new BlockMarker(config.getInt("Chest Marker id", 2777), Block.chest, null, 0.75F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerChest");
-		markerPig = new BlockMarker(config.getInt("Pig Marker id", 2778), null, "Pig", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerPig");
-		markerChicken = new BlockMarker(config.getInt("Chicken Marker id", 2779), null, "Chicken", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerChicken");
-		markerOre = new BlockMarker(config.getInt("Ore Marker id", 2780), Block.oreCoal, null, 0.75F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerOre");
-		markerWolf = new BlockMarker(config.getInt("Wolf Marker id", 2781), null, "Wolf", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerWolf");
-		markerCat = new BlockMarker(config.getInt("Ocelot Marker id", 2782), null, "Ozelot", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerCat");
+		markerChest = new BlockMarker(config.getInt("Chest Marker id", 2777), Block.chest, null, 0.75F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerChest").setTextureName("cubebots:markerChest");
+		markerPig = new BlockMarker(config.getInt("Pig Marker id", 2778), null, "Pig", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerPig").setTextureName("cubebots:markerPig");
+		markerChicken = new BlockMarker(config.getInt("Chicken Marker id", 2779), null, "Chicken", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerChicken").setTextureName("cubebots:markerChicken");
+		markerOre = new BlockMarker(config.getInt("Ore Marker id", 2780), Block.oreCoal, null, 0.75F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerOre").setTextureName("cubebots:markerOre");
+		markerWolf = new BlockMarker(config.getInt("Wolf Marker id", 2781), null, "Wolf", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerWolf").setTextureName("cubebots:markerWolf");
+		markerCat = new BlockMarker(config.getInt("Ocelot Marker id", 2782), null, "Ozelot", 1F).setCreativeTab(cubeBotTab).setUnlocalizedName(modid + ":markerCat").setTextureName("cubebots:markerCat");
 
 		TickRegistry.registerTickHandler(new TickHandlerServer(), Side.SERVER);
 		TickRegistry.registerTickHandler(new TickHandlerClient(), Side.CLIENT);
