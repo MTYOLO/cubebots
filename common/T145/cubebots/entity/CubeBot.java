@@ -30,21 +30,12 @@ import T145.cubebots.entity.ai.AIFollowTamer;
 import T145.cubebots.entity.ai.AIPanic;
 import T145.cubebots.world.BlockCoord;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-
-import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
-
-public class CubeBot extends EntityCreature implements IEntityAdditionalSpawnData {
-	protected String texture;
-	private EnumCubeBotType type;
-	public int maxHealth;
-	public int lifeSpan;
+public class CubeBot extends EntityCreature {
 	private int scale;
-	public int idleTicks;
+	private EnumCubeBotType type;
+	public int maxHealth, lifeSpan, idleTicks;
 
-	public boolean tamable;
-	public boolean tamed;
+	public boolean tamable, tamed;
 	public String tamer;
 	public ItemStack[] inv = new ItemStack[36];
 	public List<BlockCoord> markedChests = new ArrayList();
@@ -53,7 +44,6 @@ public class CubeBot extends EntityCreature implements IEntityAdditionalSpawnDat
 		super(par1World);
 		type = EnumCubeBotType.NORMAL;
 		dataWatcher.addObject(19, new Byte(type.index));
-		texture = "cubebots/textures/cubeBot.png";
 		maxHealth = 14;
 		setHealth(getMaxHealth());
 		lifeSpan = 24000;
@@ -463,8 +453,7 @@ public class CubeBot extends EntityCreature implements IEntityAdditionalSpawnDat
 	}
 
 	public boolean additionalSpawnRequirement() {
-		return worldObj.isAABBInMaterial(boundingBox.expand(12, 12, 12),
-				Material.lava);
+		return worldObj.isAABBInMaterial(boundingBox.expand(12, 12, 12), Material.lava);
 	}
 
 	@Override
@@ -539,15 +528,5 @@ public class CubeBot extends EntityCreature implements IEntityAdditionalSpawnDat
 			BlockCoord bc = new BlockCoord(array[a * 3], array[a * 3 + 1], array[a * 3 + 2]);
 			list.add(bc);
 		}
-	}
-
-	@Override
-	public void writeSpawnData(ByteArrayDataOutput data) {
-		data.writeUTF(texture);
-	}
-
-	@Override
-	public void readSpawnData(ByteArrayDataInput data) {
-		texture = data.readUTF();
 	}
 }

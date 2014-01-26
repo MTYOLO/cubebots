@@ -1,19 +1,15 @@
 package T145.cubebots.entity;
 
-import T145.cubebots.entity.ai.AIFollowTamer;
-import T145.cubebots.entity.ai.AISiren;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.world.World;
+import T145.cubebots.entity.ai.AIFollowTamer;
+import T145.cubebots.entity.ai.AISiren;
 
-public class CubeBotSiren extends CubeBot
-{
-
-	public CubeBotSiren(World par1World)
-	{
-		super(par1World);
-		texture = "cubebots/textures/cubeBotSiren.png";
+public class CubeBotSiren extends CubeBot {
+	public CubeBotSiren(World w) {
+		super(w);
 		setType(EnumCubeBotType.SIREN);
-		
+
 		dataWatcher.addObject(25, new Integer(0));
 
 		tasks.addTask(3, new AISiren(this, 16, 0.26F, EntityLiving.class, false));

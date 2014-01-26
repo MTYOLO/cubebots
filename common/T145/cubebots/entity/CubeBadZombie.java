@@ -1,18 +1,14 @@
 package T145.cubebots.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import T145.cubebots.entity.ai.AIFindTarget;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import T145.cubebots.entity.ai.AIFindTarget;
 
 public class CubeBadZombie extends CubeBad {
 	public CubeBadZombie(World par1World) {
 		super(par1World);
-		texture = "cubebots/textures/cubeBadZombie.png";
 		burnInLight = true;
 		targetTasks.addTask(2, new AIFindTarget(this, CubeBot.class, CubeBad.class, 16.0F));
 		targetTasks.addTask(2, new AIFindTarget(this, EntityPlayer.class, 16.0F));
