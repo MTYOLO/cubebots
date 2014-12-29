@@ -63,7 +63,6 @@ import cpw.mods.fml.common.registry.TickRegistry;
 import cpw.mods.fml.relauncher.Side;
 
 @Mod(modid = CubeBots.modid, name = CubeBots.modid, version = "1.4.3")
-@NetworkMod(clientSideRequired = true, serverSideRequired = false, clientPacketHandlerSpec = @SidedPacketHandler(channels = "CubeBots", packetHandler = PacketHandlerClient.class), serverPacketHandlerSpec = @SidedPacketHandler(channels = "CubeBots", packetHandler = PacketHandlerServer.class))
 public class CubeBots {
 	public static final String modid = "CubeBots";
 
